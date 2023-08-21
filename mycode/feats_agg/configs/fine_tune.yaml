@@ -1,0 +1,81 @@
+# @package _global_
+hydra:
+  run:
+#    dir: /outputs/bionicEye/feats_agg/${run_name}_${now:%d-%m-%Y_%H-%M}
+#    dir: /outputs/bionicEye/feats_agg/fine_tune/${run_name}_${now:%d-%m-%Y_%H-%M}
+    dir: /outputs/bionicEye/feats_agg/tmp/${exp_name}_${now:%d-%m-%Y_%H-%M}
+
+## Before running, notice: min/max_epochs, num_workers, ckpt_dir in transformer params, output dir!, output.save!
+
+mlflow_path: /outputs/bionicEye/feats_agg/mlruns
+
+exp_name: low-resolution
+run_name: tmp-ft-cls-no-last-layer-norm-depth2-ce+l2*24
+
+system:
+  num_gpus: 1
+  seed: 1
+
+training:
+  max_epochs: 300
+  min_epochs: 0
+  patience: 10
+
+ytf:
+  data:
+    name: ytf
+    path: /inputs/bionicEye/data/ytf
+    embedding_dir: /outputs/bionicEye/v1/extract-feats/bicdown-face-scale-4-norm-sim-r100_01-04-2023_19-54
+#    embedding_dir: /outputs/bionicEye/v1/extract-feats/feats-bilinear-face-scale-4_28-05-2023_10-10
+    detection_q: /datasets/BionicEye/YouTubeFaces/faces/bicubic_lr_scale_4/detection.pickle
+    num_frames: 10
+    collate_fn:
+
+data:
+  num_frames: ${ytf.data.num_frames}
+  num_workers: 0
+
+model:
+  arch: # transformer
+  input_dim: 512
+  agg_method: cls
+  use_mlp: False
+  batch_size:
+    train: 1024
+    test: 256
+  depth: 2
+  model_state_dict:
+  ckpt_dir:
+#  ckpt: /outputs/bionicEye/feats_agg/mlruns/771810300347970854/da8c5196574f409185eb5460fe7edb6e/artifacts/checkpoints/epoch=43-val_rank1=0.998.ckpt  # mean
+#  ckpt: /outputs/bionicEye/feats_agg/mlruns/771810300347970854/103f9b0a24314b09ba8dfb452450f592/artifacts/checkpoints/epoch=42-val_rank1=0.997.ckpt  # cls
+#  ckpt: /outputs/bionicEye/feats_agg/mlruns/771810300347970854/53bc1861ce24467890c4dce12ca8d0d9/artifacts/checkpoints/epoch=63-val_rank1=0.997.ckpt # concat + mlp
+#  ckpt: /outputs/bionicEye/feats_agg/mlruns/771810300347970854/98752f40e2b74532b9dfcdb7d9b3cbda/artifacts/checkpoints/epoch=46-val_rank1=0.998.ckpt # cls-depth5
+#  ckpt: /outputs/bionicEye/feats_agg/mlruns/771810300347970854/3a62fad8a6fd477fb62bcf639cb4f9d4/artifacts/checkpoints/epoch=20-val_rank1=0.996.ckpt # mean-depth5-lr-pretrain
+#  ckpt: /outputs/bionicEye/feats_agg/mlruns/771810300347970854/e60966ffbda64d8d93e5855e9021ea65/artifacts/checkpoints/epoch=48-val_rank1=0.998.ckpt # mean-depth5-batch512
+#  ckpt: /outputs/bionicEye/feats_agg/low-resolution/04-06-2023_13-00/checkpoints/epoch=2-val_rank1=0.998.ckpt # cls-weighting-inputs
+#  ckpt: /outputs/bionicEye/feats_agg/low-resolution/04-06-2023_14-07/checkpoints/epoch=27-val_rank1=0.997.ckpt # cls-no-last-layer-norm-depth2
+  ckpt: /outputs/bionicEye/feats_agg/low-resolution/05-06-2023_11-35/checkpoints/epoch=32-val_rank1=0.998.ckpt # cls-no-last-layer-norm-depth2-ce+l2
+
+loss:
+  types:
+    - ce
+    - l2
+    - oracle
+  temperature: 0.3
+  weight:
+
+optim:
+  name: adamw
+  lr: 5e-4
+  weight_decay: 0.1
+  gamma: 0.7
+  milestones: [10, 20, 30, 40]
+
+runai:
+  job_name: ${run_name}
+  image_name: arti.originai.co/docker/vis/barakm2_vis2212
+  num_gpus: ${system.num_gpus}
+  researcher: barakm
+  script_path: mycode/feats_agg/train.py
+
+code_location: /inputs/RUNAI/code

@@ -1,0 +1,92 @@
+# @package _global_
+hydra:
+  run:
+#    dir: /outputs/bionicEye/singlerun/${run_name}_${now:%d-%m-%Y_%H-%M}
+#    dir: /outputs/bionicEye/tmp/srfr_19-07-2022_17-09
+    dir: /outputs/bionicEye/tmp/${run_name}_${now:%d-%m-%Y_%H-%M}
+  sweep:
+    dir: /outputs/bionicEye/multirun/${run_name}
+    subdir: b_${data.batch_size}/lr_${transformer.sr.lr}/nt_${data.n_triplets}
+
+## Before running, notice: min/max_epochs, num_workers, ckpt_dir in transformer params, output dir!, output.save!
+
+run_name: dbvsr_bicdown
+
+
+stage:
+  train: False
+  test: True
+
+system:
+  num_gpus:
+    - 0
+  seed: 1
+
+training:
+  min_epochs: 0
+  max_epochs: 1
+  save_sr_progress: True
+
+data:
+  path: /datasets/BionicEye/YouTubeFaces/faces/bicubic_down_x4
+  train: ytf
+  test: ytf
+
+  distractors: True
+  nobody: False
+
+  n_triplets: 1024
+  batch_size: 32
+  num_workers: 32
+  augmentations:
+    test:
+      types: ## JPEG, blur, noise
+#        - noise
+#        - blur
+#        - JPEG
+      params:
+        ## JPEG quality factor:
+        qf:
+        ## noise std:
+        std: 0.07
+    train:
+      types: ## JPEG, blur, noise
+#        - noise
+#        - blur
+#        - JPEG
+#        - horizontal_flip
+      params:
+        ## JPEG quality factor:
+        qf:
+        ## noise std:
+        std: 0.07
+
+model:
+  ckpt: #/outputs/bionicEye/tmp/srfr_19-07-2022_17-09/version_0/checkpoints/SRFR.ckpt
+  lr: 1e-5
+  loss:
+    names:
+      - triplet_loss
+      - l1
+    l2_reg: 0
+
+  fr: # face recognition
+    ckpt_dir: # /outputs/sherlock/multirun/15-12-2021_17-23_different-seeds-2/seed-${seed}/fake-samples-8/version_0/checkpoints
+    batch_size: 32
+    num_input_frames: 40
+    embeddings_path: .
+    output:
+      save: True
+    hr_res: 112
+
+  sr: # super resolution
+    num_input_frames: 5
+    sr_scale: 4
+    batch_size: 32
+    lr: 5e-5
+    loss:
+      names:
+        - l1
+      l2_reg: 0
+      weights:
+      weight_decay: 0

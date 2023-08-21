@@ -1,0 +1,35 @@
+# @package _global_
+defaults:
+  - _self_
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:
+#  output_subdir: null
+  run:
+    dir: /outputs/bionicEye/v1/run-sr/${run_name}_${now:%d-%m-%Y_%H-%M}
+
+system:
+  num_gpus: 1
+
+run_name: dbvsr-lr-scale-4-vids-backorder
+
+data:
+  path: /datasets/BionicEye/YouTubeFaces/full/bicubic_lr_scale_4
+  dst_dir: /datasets/BionicEye/YouTubeFaces/full/dbvsr/bicubic_lr_scale_4
+  augmentations:
+    test:
+      types:
+      params:
+    train:
+      types:
+      params:
+
+runai:
+  job_name: ${run_name}
+  image_name: arti.originai.co/docker/vis/barakm_vis2212
+  num_gpus: ${system.num_gpus}
+  researcher: barakm
+  script_path: mycode/v1/run_sr.py
+
+code_location: /inputs/RUNAI/code

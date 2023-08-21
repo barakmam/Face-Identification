@@ -1,0 +1,88 @@
+# @package _global_
+hydra:
+  run:
+    dir: /outputs/bionicEye/extract-feats/${run_name}_${now:%d-%m-%Y_%H-%M}
+#    dir: /outputs/tmp/${run_name}_${now:%d-%m-%Y_%H-%M}
+
+## Before running, notice: min/max_epochs, num_workers, ckpt_dir in transformer params, output dir!, output.save!
+
+run_name: feats-bilinear-face-scale-4
+
+system:
+  num_gpus: 1
+  seed: 1
+
+data:
+  path: /datasets/BionicEye/YouTubeFaces/faces/bilinear_lr_scale_4
+#  path: /datasets/MS1M_RetinaFace_t1/ms1m-retinaface-t1
+  name: ytf
+
+  batch_size: 2048
+  num_workers: 16
+  augmentations:
+    test:
+      types:
+        - similarity_trans
+        - to_pil
+#        - ratio_center_crop
+#        - square_pad
+#        - resize
+#        - horizontal_flip
+        - normalize
+#        - noise
+#        - blur
+#        - JPEG
+      params:
+        input_size: 112
+#        horizontal_flip_probability: 1
+        norm:
+          mean: [0.5, 0.5, 0.5]
+          std: [0.5, 0.5, 0.5]
+        ## for center crop by ration of the image:
+#        ratio: 1.8
+        ## JPEG quality factor:
+#        qf:
+        ## noise std:
+#        std: 0.07
+    train:
+      types:
+        - similarity_trans
+#        - ratio_center_crop
+#        - square_pad
+#        - horizontal_flip
+#        - resize
+        - normalize
+#        - noise
+#        - blur
+#        - JPEG
+#        - horizontal_flip
+      params:
+        input_size: 112
+#        horizontal_flip_probability: 1
+        norm:
+          mean: [0.5, 0.5, 0.5]
+          std: [0.5, 0.5, 0.5]
+#        ratio: 1.8
+        ## JPEG quality factor:
+#        qf:
+        ## noise std:
+#        std: 0.07
+
+model:
+  fr:
+    arch: r100
+    ckpt_dir:
+    embeddings_path: .
+    output:
+      save: True
+    hr_res: 112
+
+
+runai:
+  job_name: ${run_name}
+  image_name: arti.originai.co/docker/vis/barakm_vis2212
+  num_gpus: ${system.num_gpus}
+  researcher: barakm
+  script_path: mycode/extract_feats.py
+
+code_location: /inputs/RUNAI/code

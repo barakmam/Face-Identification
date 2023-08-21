@@ -1,0 +1,27 @@
+# @package _global_
+defaults:
+  - _self_
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+## Before running, notice: min/max_epochs, num_workers, ckpt_dir in transformer params, output dir!, output.save!
+
+system:
+  num_gpus: 1
+
+data:
+  path: /datasets/BionicEye/YouTubeFaces/full/bicubic_lr_scale_2
+  dst_dir: /datasets/BionicEye/YouTubeFaces/full/dbvsr/bicubic_lr_scale_2
+  augmentations:
+    test:
+      types:
+      params:
+    train:
+      types:
+      params:
+
+

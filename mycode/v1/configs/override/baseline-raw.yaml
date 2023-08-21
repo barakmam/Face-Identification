@@ -1,0 +1,51 @@
+# @package _global_
+run_name: baseline-raw
+system:
+  gpus:
+  - 0
+  seed: 1
+model:
+  ckpt_dir: null
+  defrost_layers: 3
+  batch_size: 32
+  lr: 0.0006
+  norm_features: false
+  features_mixup: false
+  mlp_classifier: false
+  hidden_layer: 256
+loss:
+  names:
+  - cross_entropy
+  l2_reg: 0
+  weights: null
+  weight_decay: 0
+  alpha: 0.4
+  gamma: 3
+  temperature: 1
+  base_temperature: 1
+  class_weights: true
+  epsilons:
+  - 1
+  - 5
+data:
+  train: CFD_real_dfdc_fake
+  test: CFD_real_dfdc_fake
+  train_num_samples_fake: 0
+  train_num_samples_real: 3000
+  balanced_sampling: true
+  num_workers: 32
+  augmentations:
+    test:
+      types: null
+      params:
+        qf: null
+        std: 0.07
+    train:
+      types:
+      - horizontal_flip
+      params:
+        qf: null
+        std: 0.07
+training:
+  min_epochs: 15
+  max_epochs: 200

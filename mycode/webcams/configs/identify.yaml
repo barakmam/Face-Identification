@@ -1,0 +1,35 @@
+# @package _global_
+hydra:
+  run:
+#    dir: /outputs/tmp/${run_name}_${now:%d-%m-%Y_%H-%M}
+    dir: /outputs/bionicEye/v1/identify/${run_name}_${now:%d-%m-%Y_%H-%M}
+
+
+run_name: identify
+
+system:
+  num_gpus: 1
+
+data:
+  query_video_dir: /datasets/BionicEye/YouTubeFaces/faces/sharp/videos/Sandra_Day_OConner_0
+  gallery_images_dir: /inputs/bionicEye/test_gallery_images
+  batch_size: 16
+
+model:
+  detection:
+    weights_path_prefix: /inputs/RUNAI/code/mycode/v1/models/weights/retinaface-R50/R50
+    threshold: 0.3
+
+  fr:
+    arch: r100
+    weights_path: /inputs/RUNAI/code/mycode/v1/models/weights/r100_ms1mv3/backbone.pth
+
+
+runai:
+  job_name: ${run_name}
+  image_name: arti.originai.co/docker/vis/barakm_vis2212
+  num_gpus: ${system.num_gpus}
+  researcher: barakm
+  script_path: mycode/v1/identify.py
+
+code_location: /inputs/RUNAI/code

@@ -1,0 +1,90 @@
+# @package _global_
+hydra:
+  run:
+#    dir: /outputs/bionicEye/feats_agg/${run_name}_${now:%d-%m-%Y_%H-%M}
+#    dir: /outputs/bionicEye/feats_agg/switch_ids/${run_name}_${now:%d-%m-%Y_%H-%M}
+    dir: /outputs/bionicEye/feats_agg/${exp_name}/${now:%d-%m-%Y_%H-%M}
+
+## Before running, notice: min/max_epochs, num_workers, ckpt_dir in transformer params, output dir!, output.save!
+
+mlflow_path: /outputs/bionicEye/feats_agg/mlruns
+
+exp_name: low-resolution
+run_name: tmp-oracle-loss
+
+system:
+  num_gpus: 1
+  seed: 1
+
+training:
+  max_epochs: 300
+  min_epochs: 0
+  patience: 5
+
+data:
+  name: ms1m
+  path: /inputs/bionicEye/data/ms1m-retinaface-t1
+  embedding_dir: /inputs/bionicEye/data/ms1m-retinaface-t1  # /outputs/bionicEye/extract-feats/ms1m-feats-lrx4_22-05-2023_11-01
+
+  num_workers: 0
+  augmentations:
+    test:
+      types:
+      params:
+    train:
+      types:
+      params:
+  min_num_images: 10
+  max_num_images: 150
+
+  num_frames: 10
+  collate_fn:
+
+
+ytf:
+  data:
+    name: ytf
+    embedding_dir: /outputs/bionicEye/v1/extract-feats/bicdown-face-scale-4-norm-sim-r100_01-04-2023_19-54
+    detection_q: /datasets/BionicEye/YouTubeFaces/faces/bicubic_lr_scale_4/detection.pickle
+    path: /inputs/bionicEye/data/ytf
+    num_frames: 10
+    collate_fn:
+
+
+model:
+  arch: # transformer
+  input_dim: 4096
+  agg_method: cls # cls, mean, concat
+  use_mlp: False
+  batch_size:
+    train: 1024
+    test: 1024
+  depth: 2
+  model_state_dict: # /outputs/bionicEye/ms1m-retinaface/pretrain-mbf_18-01-2023_13-40/Code/insightFace/recognition/arcface_torch/train_outputs/transformer.pt
+  ckpt_dir:
+
+loss:
+  types:
+    - ce
+#    - l2
+    - oracle
+  temperature: 0.3
+  weight:
+
+
+optim:
+  name: adamw
+  lr: 1e-3
+  weight_decay: 0
+  gamma: 0.7
+  milestones: [20, 40, 60, 80, 300, 400, 1000, 1500]
+
+
+runai:
+  job_name: ${run_name}
+  image_name: arti.originai.co/docker/vis/barakm2_vis2212
+  num_gpus: ${system.num_gpus}
+  researcher: barakm
+  script_path: mycode/feats_agg/train.py
+
+code_location: /inputs/RUNAI/code

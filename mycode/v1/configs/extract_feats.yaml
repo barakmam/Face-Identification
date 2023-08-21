@@ -1,0 +1,63 @@
+# @package _global_
+hydra:
+  run:
+#    dir: /outputs/tmp/${run_name}_${now:%d-%m-%Y_%H-%M}
+    dir: /outputs/bionicEye/v1/extract-feats/${run_name}_${now:%d-%m-%Y_%H-%M}
+
+
+run_name: dbvsr-lr-scale-4
+
+system:
+  num_gpus: 4
+  seed: 1
+
+data:
+  path: /datasets/BionicEye/YouTubeFaces/full/dbvsr/bicubic_lr_scale_4
+  name: ytf
+  metadata_path: /inputs/RUNAI/code/mycode/v1/ytf
+
+  batch_size: 1024
+  num_workers: 8
+  augmentations:
+    test:
+      types:
+        - similarity_trans
+        - to_pil
+        - normalize
+      params:
+        similarity_trans_size: [112, 112]
+        input_size: 112
+        norm:
+          mean: [0.5, 0.5, 0.5]
+          std: [0.5, 0.5, 0.5]
+
+    train:
+      types:
+        - similarity_trans
+        - to_pil
+        - normalize
+      params:
+        input_size: 112
+        norm:
+          mean: [0.5, 0.5, 0.5]
+          std: [0.5, 0.5, 0.5]
+
+model:
+  fr:
+    arch: r100
+    weights_path: /inputs/RUNAI/code/mycode/v1/models/weights/r100_ms1mv3/backbone.pth
+    ckpt_dir:
+    embeddings_path: .
+    output:
+      save: True
+    hr_res: 112
+
+
+runai:
+  job_name: ${run_name}
+  image_name: arti.originai.co/docker/vis/barakm_vis2212
+  num_gpus: ${system.num_gpus}
+  researcher: barakm
+  script_path: mycode/v1/extract_feats.py
+
+code_location: /inputs/RUNAI/code
